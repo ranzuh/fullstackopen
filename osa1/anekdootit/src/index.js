@@ -3,20 +3,46 @@ import ReactDOM from 'react-dom'
 
 const App = ({ anecdotes }) => {
   const [selected, setSelected] = useState(0)
+  const [points, setPoints] = useState(new Array(anecdotes.length).fill(0))
 
-  const handleClick = () => {
-    console.log(getRandomIndex())
-    setSelected(getRandomIndex)
+  const handleNextClick = () => {
+    setSelected(getRandomIndex())
+  }
+  
+  const handleVoteClick = () => {
+    const copy = [...points]
+    copy[selected] += 1
+    setPoints(copy)
   }
 
   const getRandomIndex = () => {
     return Math.floor(Math.random() * anecdotes.length)
   }
 
+  const getBestAnecdoteIndex = () => {
+    let max = 0
+    let maxIndex = 0
+    for (let i = 0; i < anecdotes.length; i++) {
+      if (points[i] > max) {
+        max = points[i]
+        maxIndex = i
+      }
+    }
+    return maxIndex
+  }
+
   return (
     <div>
+      <h1>Anecdote of the day</h1>
       <p>{anecdotes[selected]}</p>
-      <button onClick={handleClick}>Next anecdote</button>
+      <p>has {points[selected]} votes</p>
+      <button onClick={handleVoteClick}>Vote</button>
+      <button onClick={handleNextClick}>Next anecdote</button>
+
+      <h1>Anecdote with most votes</h1>
+      <p>{anecdotes[getBestAnecdoteIndex()]}</p>
+      <p>has {points[getBestAnecdoteIndex()]} votes</p>
+
     </div>
   )
 }
