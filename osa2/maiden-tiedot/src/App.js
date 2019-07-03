@@ -4,6 +4,7 @@ import axios from 'axios'
 const App = () => {
   const [countries, setCountries] = useState([])
   const [filter, setFilter] = useState("")
+  const [weather, setWeather] = useState(0)
 
   useEffect(() => {
     axios.get('https://restcountries.eu/rest/v2/all')
@@ -19,13 +20,19 @@ const App = () => {
   }
 
   const showCountries = () => {
-    console.log("showcountries")
     let filteredCountries = filterCountries()
     if (filteredCountries.length > 10) {
       return <div>Liian monta tulosta, tarkenna hakua</div>
     }
     else if(filteredCountries.length === 1) {
       const country = filteredCountries.pop()
+      if(weather === 0) {
+        getWeather(country.capital)
+      }
+      else if (country.capital !== weather.location.name) {
+        getWeather(country.capital)
+      }
+      
       return (
         <div>
           <h2>{country.name}</h2>
@@ -37,6 +44,9 @@ const App = () => {
           </div>
           <h3>Lippu</h3>
           <img src={country.flag} alt={"flag of " + country.name} height="100" />
+          <h3>Sää {country.capital}</h3>
+          {showWeather()}
+
         </div>
       )
     }
@@ -61,6 +71,26 @@ const App = () => {
 
   const handleChange = (event) => {
     setFilter(event.target.value)
+  }
+
+  const getWeather = (capital) => {
+    axios.get(`http://api.apixu.com/v1/current.json?key=a89d0b39b9f249d59ce101343190307&q=${capital}`)
+      .then(response => {
+        setWeather(response.data)
+      })
+  }
+
+  const showWeather = () => {
+    if(weather === 0) {
+      return <div>no weather yet</div>
+    }
+    return (
+      <div>
+        <div>Lämpötila: {weather.current.temp_c}</div>
+        <div>Tuuli: {weather.current.wind_kph} suunta {weather.current.wind_dir}</div>
+        <img src={weather.current.condition.icon} alt={"condition " + weather.location.name} height="100" />
+      </div>
+    )
   }
 
 
