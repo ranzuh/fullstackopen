@@ -7,7 +7,7 @@ const PersonsList = ({ persons, filter, handleButton }) => {
       {
         persons
           .filter((person) => person.name.toLowerCase().includes(filter.toLowerCase()))
-          .map((person) => <p key={person.name}>{person.name} {person.number} <button onClick={() => handleButton(person.id)} >Poista</button> </p>)
+          .map((person) => <p key={person.name}>{person.name} {person.number} <button onClick={() => handleButton(person.id)} >Delete</button> </p>)
       }
     </div>
   )
@@ -51,15 +51,23 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault()
 
-    if (persons.some((person) => person.name === newName)) {
-      alert(`${newName} is already added to the phonebook`)
-      return false
-    }
     const newPerson = {
       name: newName,
       number: newNumber
     }
 
+    if (persons.some((person) => person.name === newName)) {
+      const confirmed = window.confirm(`${newName} is already added to the phonebook, update the old number with new one?`)
+      if (confirmed) {
+        const oldId = persons.find(person => person.name === newName).id
+        personService.update(oldId, newPerson)
+          .then(response => {
+            setPersons(persons.map(person => person.id !== oldId ? person : response))
+          })
+      }
+      return false
+    }
+    
     personService
       .create(newPerson)
       .then(returnedPerson => {
@@ -82,7 +90,7 @@ const App = () => {
   }
 
   const handleDeleteButton = (id) => {
-    const confirmed = window.confirm(`Poistetaanko ${persons.find(person => person.id === id).name}`)
+    const confirmed = window.confirm(`Delete ${persons.find(person => person.id === id).name}`)
     if(confirmed) {
       personService.remove(id)
         .then(() => {
