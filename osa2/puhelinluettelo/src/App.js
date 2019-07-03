@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react'
-import axios from 'axios'
+import personService from './services/persons'
 
-const PersonsList = ({ persons, filter }) => {
+const PersonsList = ({ persons, filter, handleButton }) => {
   return (
     <div>
       {
         persons
           .filter((person) => person.name.toLowerCase().includes(filter.toLowerCase()))
-          .map((person) => <p key={person.name}>{person.name} {person.number}</p>)
+          .map((person) => <p key={person.name}>{person.name} {person.number} <button onClick={() => handleButton(person.id)} >Poista</button> </p>)
       }
     </div>
   )
@@ -43,10 +43,9 @@ const App = () => {
   const [ filter, setFilter ] = useState('')
 
   useEffect(() => {
-    axios.get('http://localhost:3001/persons')
-      .then(response => {
-        setPersons(response.data)
-      })
+    personService
+      .getAll()
+      .then(persons => setPersons(persons))
   }, [])
 
   const addPerson = (event) => {
@@ -60,9 +59,14 @@ const App = () => {
       name: newName,
       number: newNumber
     }
-    setPersons(persons.concat(newPerson))
-    setNewName('')
-    setNewNumber('')
+
+    personService
+      .create(newPerson)
+      .then(returnedPerson => {
+        setPersons(persons.concat(returnedPerson))
+        setNewName('')
+        setNewNumber('')
+      })
   }
 
   const handleNameChange = (event) => {
@@ -75,6 +79,16 @@ const App = () => {
 
   const handleFilterChange = (event) => {
     setFilter(event.target.value)
+  }
+
+  const handleDeleteButton = (id) => {
+    const confirmed = window.confirm(`Poistetaanko ${persons.find(person => person.id === id).name}`)
+    if(confirmed) {
+      personService.remove(id)
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id))
+        })
+    }
   }
 
   return (
@@ -92,7 +106,7 @@ const App = () => {
       />
 
       <h2>Numbers</h2>
-      <PersonsList persons={persons} filter={filter} />
+      <PersonsList persons={persons} filter={filter} handleButton={handleDeleteButton}/>
     </div>
   )
 }
