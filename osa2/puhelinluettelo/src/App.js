@@ -107,6 +107,10 @@ const App = () => {
         setMessage({message: `${returnedPerson.name} added to the phonebook`, type: 'message'})
         setTimeout(() => setMessage(null), 3000)
       })
+      .catch(error => {
+        setMessage({message: error.response.data.error, type: 'error'})
+        setTimeout(() => setMessage(null), 3000)
+      })
   }
 
   const handleNameChange = (event) => {
